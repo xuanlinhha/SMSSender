@@ -1,6 +1,5 @@
 package xuanlinhha.smssender.view;
 
-import android.app.Activity;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
@@ -32,16 +31,22 @@ public class MyArrayAdapter extends ArrayAdapter<Receiver> {
         LayoutInflater inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View rowView = inflater.inflate(R.layout.row_layout, parent, false);
+        TextView orderTxtView = (TextView) rowView.findViewById(R.id.order);
+        orderTxtView.setText(Integer.toString(position + 1));
+
         ImageView status = (ImageView) rowView.findViewById(R.id.status);
-        TextView noTxtView = (TextView) rowView.findViewById(R.id.no);
-        noTxtView.setText(receiver.getNo());
         if (receiver.getStatus() == Receiver.Status.Fresh) {
-            status.setImageResource(R.drawable.going);
-        } else if (receiver.getStatus() == Receiver.Status.Success) {
-            status.setImageResource(R.drawable.ok);
+            status.setImageResource(R.drawable.send);
+        } else if (receiver.getStatus() == Receiver.Status.Sent) {
+            status.setImageResource(R.drawable.checkmark);
+        } else if (receiver.getStatus() == Receiver.Status.Delivered) {
+            status.setImageResource(R.drawable.double_tick);
         } else {
             status.setImageResource(R.drawable.fail);
         }
+
+        TextView noTxtView = (TextView) rowView.findViewById(R.id.no);
+        noTxtView.setText(receiver.getNo());
         return rowView;
     }
 }

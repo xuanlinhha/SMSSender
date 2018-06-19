@@ -19,7 +19,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText phoneNumbersTxtEdit;
     private EditText messageTxtEdit;
 
-    private Pattern chineseNo = Pattern.compile("\\+86[0-9]{11}");
+    private Pattern chineseNo = Pattern.compile("\\+(86[0-9]{11}|65[0-9]{8})");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
         messageTxtEdit = (EditText) findViewById(R.id.messageTxtEdit);
     }
 
-    public void startSending(View view) {
+    public void prepareSending(View view) {
         Set<String> nos = new HashSet<>();
         String tmp = phoneNumbersTxtEdit.getText().toString();
         Matcher m = chineseNo.matcher(tmp);

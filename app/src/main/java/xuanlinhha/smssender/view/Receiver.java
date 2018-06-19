@@ -1,7 +1,8 @@
 package xuanlinhha.smssender.view;
 
 public class Receiver {
-    public enum Status {Fresh,Success,Fail};
+    public enum Status {Fresh, Sent, Delivered, Fail}
+
     private String no;
     private Status status;
 

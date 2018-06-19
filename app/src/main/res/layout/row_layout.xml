@@ -1,24 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="?android:attr/listPreferredItemHeight"
-    android:padding="6dip" >
+    android:layout_height="20dp">
+
+    <TextView
+        android:id="@+id/order"
+        android:layout_width="30dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp" />
 
     <ImageView
         android:id="@+id/status"
-        android:layout_width="wrap_content"
-        android:layout_height="fill_parent"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentTop="true"
-        android:src="@drawable/ic_launcher_background" />
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_toRightOf="@id/order" />
 
     <TextView
         android:id="@+id/no"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_toRightOf="@id/status"
-        android:text="Description"
-        android:textSize="12sp" />
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/status" />
 </RelativeLayout>
