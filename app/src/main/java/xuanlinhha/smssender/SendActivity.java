@@ -59,7 +59,6 @@ public class SendActivity extends Activity {
     }
 
     public void startSending(View view) {
-
         if (!receivers.isEmpty()) {
             startBtn.setText("Sending ...");
             startBtn.setEnabled(false);
@@ -71,7 +70,7 @@ public class SendActivity extends Activity {
 
     private void sendSMS() {
         Receiver r = receivers.get(currentReceiver);
-        if (r.getStatus() != Receiver.Status.Delivered) {
+        if (r.getStatus() != Receiver.Status.Sent) {
             SmsManager smsManager = SmsManager.getDefault();
             ArrayList<String> parts = smsManager.divideMessage(message);
             totalParts = parts.size();
@@ -84,8 +83,10 @@ public class SendActivity extends Activity {
                 deliveryIntents.add(deliveredPI);
             }
             currentPart = 0;
-
             smsManager.sendMultipartTextMessage(r.getNo(), null, parts, sentIntents, deliveryIntents);
+        } else {
+            currentReceiver++;
+            sendNextMessage();
         }
     }
 
@@ -131,23 +132,11 @@ public class SendActivity extends Activity {
             public void onReceive(Context arg0, Intent arg1) {
                 switch (getResultCode()) {
                     case Activity.RESULT_OK: {
-//                        currentPart++;
-//                        System.out.println("received part" + currentPart);
-//                        if (currentPart == totalParts) {
-//                            System.out.println("received all parts");
-//                            // update status of current receiver
-//                            updateRow(currentReceiver, Receiver.Status.Delivered);
-//                            // send to next receiver
-//                            currentReceiver++;
-//                            sendNextMessage();
-//                        }
+                        // TODO
                         break;
                     }
                     default: {
-                        // update status of current receiver
-                        updateRow(currentReceiver, Receiver.Status.Fail);
-                        startBtn.setText("Start");
-                        startBtn.setEnabled(true);
+                        // TODO
                         break;
                     }
                 }
@@ -156,6 +145,7 @@ public class SendActivity extends Activity {
     }
 
     private void updateRow(int index, Receiver.Status status) {
+        receivers.get(index).setStatus(status);
         View rowView = listView.getChildAt(index - listView.getFirstVisiblePosition());
         if (rowView == null)
             return;
