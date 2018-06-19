@@ -9,6 +9,7 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.telephony.SmsManager;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -26,12 +27,18 @@ public class SendActivity extends Activity {
     private LinearLayout textContainer;
     private String message;
     private ListView listView;
+    private Button startBtn;
     private List<Receiver> receivers;
+    //
+    private int currentReceiver;
+    private int totalParts;
+    private int currentPart;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_send);
+        startBtn = findViewById(R.id.startBtn);
         message = getIntent().getStringExtra(MainActivity.EXTRA_MESSAGE).trim();
         TextView tv = new TextView(this);
         tv.setText(message);
@@ -52,51 +59,91 @@ public class SendActivity extends Activity {
     }
 
     public void startSending(View view) {
-        for (int i = 0; i < receivers.size(); i++) {
-            smsSendMessage(i);
+        if (!receivers.isEmpty()) {
+            startBtn.setText("Sending ...");
+            startBtn.setEnabled(false);
+            currentReceiver = 0;
+            registerBroadCastReceivers();
+            sendSMS();
         }
     }
 
-    private void smsSendMessage(final int i) {
-        Receiver r = receivers.get(i);
-        if (r.getStatus() == Receiver.Status.Delivered) {
-            return;
-        }
-        final String no = r.getNo();
-        // prepare intents
-        PendingIntent sentPI = PendingIntent.getBroadcast(this, 0,
-                new Intent(SENT), 0);
-        PendingIntent deliveredPI = PendingIntent.getBroadcast(this, 0,
-                new Intent(DELIVERED), 0);
-        registerReceiver(new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context arg0, Intent arg1) {
-                switch (getResultCode()) {
-                    case Activity.RESULT_OK:
-                        updateRow(i, Receiver.Status.Sent);
-                        break;
-                    default:
-                        updateRow(i, Receiver.Status.Fail);
-                        break;
-                }
+    private void sendSMS() {
+        Receiver r = receivers.get(currentReceiver);
+        if (r.getStatus() != Receiver.Status.Delivered) {
+            SmsManager smsManager = SmsManager.getDefault();
+            ArrayList<String> parts = smsManager.divideMessage(message);
+            totalParts = parts.size();
+            ArrayList<PendingIntent> deliveryIntents = new ArrayList<PendingIntent>();
+            ArrayList<PendingIntent> sentIntents = new ArrayList<PendingIntent>();
+            PendingIntent sentPI = PendingIntent.getBroadcast(this, 0, new Intent(SENT), 0);
+            PendingIntent deliveredPI = PendingIntent.getBroadcast(this, 0, new Intent(DELIVERED), 0);
+            for (int i = 0; i < this.totalParts; i++) {
+                sentIntents.add(sentPI);
+                deliveryIntents.add(deliveredPI);
             }
-        }, new IntentFilter(SENT));
+            currentPart = 0;
+            smsManager.sendMultipartTextMessage(r.getNo(), null, parts, sentIntents, deliveryIntents);
+        }
+    }
+
+    private void sendNextMessage() {
+        if (currentReceiver < receivers.size()) {
+            sendSMS();
+        } else {
+            startBtn.setText("Start");
+            startBtn.setEnabled(true);
+        }
+    }
+
+    private void registerBroadCastReceivers() {
+//        registerReceiver(new BroadcastReceiver() {
+//            @Override
+//            public void onReceive(Context arg0, Intent arg1) {
+//                switch (getResultCode()) {
+//                    case Activity.RESULT_OK: {
+//                        currentPart++;
+//                        if (currentPart == totalParts) {
+//                            // update status of current receiver
+//                            updateRow(currentReceiver, Receiver.Status.Sent);
+//                            // send to next receiver
+//                            currentReceiver ++;
+//                            sendNextMessage();
+//                        }
+//                        break;
+//                    }
+//
+//                    default: {
+//                        // update status of current receiver
+//                        break;
+//                    }
+//                }
+//            }
+//        }, new IntentFilter(SENT));
 
         registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context arg0, Intent arg1) {
                 switch (getResultCode()) {
-                    case Activity.RESULT_OK:
-                        updateRow(i, Receiver.Status.Delivered);
+                    case Activity.RESULT_OK: {
+                        currentPart++;
+                        if (currentPart == totalParts) {
+                            // update status of current receiver
+                            updateRow(currentReceiver, Receiver.Status.Delivered);
+                            // send to next receiver
+                            currentReceiver++;
+                            sendNextMessage();
+                        }
                         break;
-                    default:
-                        updateRow(i, Receiver.Status.Fail);
+                    }
+                    default: {
+                        // update status of current receiver
+                        updateRow(currentReceiver, Receiver.Status.Fail);
                         break;
+                    }
                 }
             }
         }, new IntentFilter(DELIVERED));
-        SmsManager smsManager = SmsManager.getDefault();
-        smsManager.sendTextMessage(no, null, message, sentPI, deliveredPI);
     }
 
     private void updateRow(int index, Receiver.Status status) {
