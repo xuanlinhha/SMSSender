@@ -59,6 +59,7 @@ public class SendActivity extends Activity {
     }
 
     public void startSending(View view) {
+
         if (!receivers.isEmpty()) {
             startBtn.setText("Sending ...");
             startBtn.setEnabled(false);
@@ -83,6 +84,7 @@ public class SendActivity extends Activity {
                 deliveryIntents.add(deliveredPI);
             }
             currentPart = 0;
+
             smsManager.sendMultipartTextMessage(r.getNo(), null, parts, sentIntents, deliveryIntents);
         }
     }
@@ -97,30 +99,6 @@ public class SendActivity extends Activity {
     }
 
     private void registerBroadCastReceivers() {
-//        registerReceiver(new BroadcastReceiver() {
-//            @Override
-//            public void onReceive(Context arg0, Intent arg1) {
-//                switch (getResultCode()) {
-//                    case Activity.RESULT_OK: {
-//                        currentPart++;
-//                        if (currentPart == totalParts) {
-//                            // update status of current receiver
-//                            updateRow(currentReceiver, Receiver.Status.Sent);
-//                            // send to next receiver
-//                            currentReceiver ++;
-//                            sendNextMessage();
-//                        }
-//                        break;
-//                    }
-//
-//                    default: {
-//                        // update status of current receiver
-//                        break;
-//                    }
-//                }
-//            }
-//        }, new IntentFilter(SENT));
-
         registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context arg0, Intent arg1) {
@@ -129,16 +107,47 @@ public class SendActivity extends Activity {
                         currentPart++;
                         if (currentPart == totalParts) {
                             // update status of current receiver
-                            updateRow(currentReceiver, Receiver.Status.Delivered);
+                            updateRow(currentReceiver, Receiver.Status.Sent);
                             // send to next receiver
                             currentReceiver++;
                             sendNextMessage();
                         }
                         break;
                     }
+
                     default: {
                         // update status of current receiver
                         updateRow(currentReceiver, Receiver.Status.Fail);
+                        startBtn.setText("Start");
+                        startBtn.setEnabled(true);
+                        break;
+                    }
+                }
+            }
+        }, new IntentFilter(SENT));
+
+        registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context arg0, Intent arg1) {
+                switch (getResultCode()) {
+                    case Activity.RESULT_OK: {
+//                        currentPart++;
+//                        System.out.println("received part" + currentPart);
+//                        if (currentPart == totalParts) {
+//                            System.out.println("received all parts");
+//                            // update status of current receiver
+//                            updateRow(currentReceiver, Receiver.Status.Delivered);
+//                            // send to next receiver
+//                            currentReceiver++;
+//                            sendNextMessage();
+//                        }
+                        break;
+                    }
+                    default: {
+                        // update status of current receiver
+                        updateRow(currentReceiver, Receiver.Status.Fail);
+                        startBtn.setText("Start");
+                        startBtn.setEnabled(true);
                         break;
                     }
                 }
