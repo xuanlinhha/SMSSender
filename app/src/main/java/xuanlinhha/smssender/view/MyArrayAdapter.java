@@ -39,8 +39,6 @@ public class MyArrayAdapter extends ArrayAdapter<Receiver> {
             status.setImageResource(R.drawable.send);
         } else if (receiver.getStatus() == Receiver.Status.Sent) {
             status.setImageResource(R.drawable.checkmark);
-        } else if (receiver.getStatus() == Receiver.Status.Delivered) {
-            status.setImageResource(R.drawable.double_tick);
         } else {
             status.setImageResource(R.drawable.fail);
         }

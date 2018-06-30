@@ -16,10 +16,12 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import xuanlinhha.smssender.view.MyArrayAdapter;
 import xuanlinhha.smssender.view.Receiver;
+import xuanlinhha.smssender.view.ReceiverComparator;
 
 public class SendActivity extends Activity {
     private static final String SENT = "SMS_SENT";
@@ -30,9 +32,9 @@ public class SendActivity extends Activity {
     private Button startBtn;
     private List<Receiver> receivers;
     //
-    private int currentReceiver;
+    private int nextReceiver;
     private int totalParts;
-    private int currentPart;
+    private int partCounter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,51 +54,51 @@ public class SendActivity extends Activity {
             receiver.setStatus(Receiver.Status.Fresh);
             receivers.add(receiver);
         }
+        Collections.sort(receivers, new ReceiverComparator());
         MyArrayAdapter myAdapter = new MyArrayAdapter(this,
                 R.layout.row_layout, receivers);
         listView = (ListView) findViewById(R.id.listView);
         listView.setAdapter(myAdapter);
+        nextReceiver = 0;
     }
 
     public void startSending(View view) {
         if (!receivers.isEmpty()) {
             startBtn.setText("Sending ...");
             startBtn.setEnabled(false);
-            currentReceiver = 0;
             registerBroadCastReceivers();
-            sendSMS();
+            sendNextSMS();
         }
     }
 
-    private void sendSMS() {
-        Receiver r = receivers.get(currentReceiver);
-        if (r.getStatus() != Receiver.Status.Sent) {
-            SmsManager smsManager = SmsManager.getDefault();
-            ArrayList<String> parts = smsManager.divideMessage(message);
-            totalParts = parts.size();
-            ArrayList<PendingIntent> deliveryIntents = new ArrayList<PendingIntent>();
-            ArrayList<PendingIntent> sentIntents = new ArrayList<PendingIntent>();
-            PendingIntent sentPI = PendingIntent.getBroadcast(this, 0, new Intent(SENT), 0);
-            PendingIntent deliveredPI = PendingIntent.getBroadcast(this, 0, new Intent(DELIVERED), 0);
-            for (int i = 0; i < this.totalParts; i++) {
-                sentIntents.add(sentPI);
-                deliveryIntents.add(deliveredPI);
-            }
-            currentPart = 0;
-            smsManager.sendMultipartTextMessage(r.getNo(), null, parts, sentIntents, deliveryIntents);
-        } else {
-            currentReceiver++;
-            sendNextMessage();
-        }
-    }
-
-    private void sendNextMessage() {
-        if (currentReceiver < receivers.size()) {
-            sendSMS();
-        } else {
+    private void sendNextSMS() {
+        if (nextReceiver >= receivers.size()) {
             startBtn.setText("Start");
             startBtn.setEnabled(true);
+            return;
         }
+        while (nextReceiver < receivers.size()) {
+            Receiver r = receivers.get(nextReceiver);
+            if (r.getStatus() != Receiver.Status.Sent) {
+                SmsManager smsManager = SmsManager.getDefault();
+                ArrayList<String> parts = smsManager.divideMessage(message);
+                totalParts = parts.size();
+                ArrayList<PendingIntent> deliveryIntents = new ArrayList<PendingIntent>();
+                ArrayList<PendingIntent> sentIntents = new ArrayList<PendingIntent>();
+                PendingIntent sentPI = PendingIntent.getBroadcast(this, 0, new Intent(SENT), 0);
+                PendingIntent deliveredPI = PendingIntent.getBroadcast(this, 0, new Intent(DELIVERED), 0);
+                for (int i = 0; i < this.totalParts; i++) {
+                    sentIntents.add(sentPI);
+                    deliveryIntents.add(deliveredPI);
+                }
+                partCounter = 0;
+                smsManager.sendMultipartTextMessage(r.getNo(), null, parts, sentIntents, deliveryIntents);
+                break;
+            } else {
+                nextReceiver++;
+            }
+        }
+
     }
 
     private void registerBroadCastReceivers() {
@@ -105,20 +107,19 @@ public class SendActivity extends Activity {
             public void onReceive(Context arg0, Intent arg1) {
                 switch (getResultCode()) {
                     case Activity.RESULT_OK: {
-                        currentPart++;
-                        if (currentPart == totalParts) {
+                        partCounter++;
+                        if (partCounter == totalParts) {
                             // update status of current receiver
-                            updateRow(currentReceiver, Receiver.Status.Sent);
+                            updateRow(nextReceiver, Receiver.Status.Sent);
                             // send to next receiver
-                            currentReceiver++;
-                            sendNextMessage();
+                            nextReceiver++;
+                            sendNextSMS();
                         }
                         break;
                     }
-
                     default: {
                         // update status of current receiver
-                        updateRow(currentReceiver, Receiver.Status.Fail);
+                        updateRow(nextReceiver, Receiver.Status.Fail);
                         startBtn.setText("Start");
                         startBtn.setEnabled(true);
                         break;
@@ -154,8 +155,6 @@ public class SendActivity extends Activity {
             statusImgView.setImageResource(R.drawable.send);
         } else if (status == Receiver.Status.Sent) {
             statusImgView.setImageResource(R.drawable.checkmark);
-        } else if (status == Receiver.Status.Delivered) {
-            statusImgView.setImageResource(R.drawable.double_tick);
         } else {
             statusImgView.setImageResource(R.drawable.fail);
         }
