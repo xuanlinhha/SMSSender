@@ -19,7 +19,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText phoneNumbersTxtEdit;
     private EditText messageTxtEdit;
 
-    private Pattern chineseNo = Pattern.compile("\\+(86[0-9]{11}|65[0-9]{8})");
+    private Pattern chineseNo = Pattern.compile("(\\+86[0-9]{11})|(\\+65[0-9]{8})|([0-9]{11})");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
