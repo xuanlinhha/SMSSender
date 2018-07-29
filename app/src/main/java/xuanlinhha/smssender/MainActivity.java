@@ -34,7 +34,11 @@ public class MainActivity extends AppCompatActivity {
         String tmp = phoneNumbersTxtEdit.getText().toString();
         Matcher m = chineseNo.matcher(tmp);
         while (m.find()) {
-            nos.add(m.group());
+            String phone = m.group();
+            if (!phone.startsWith("+86")) {
+                phone = "+86" + phone;
+            }
+            nos.add(phone);
         }
         String message = messageTxtEdit.getText().toString();
         Intent intent = new Intent(this, SendActivity.class);
