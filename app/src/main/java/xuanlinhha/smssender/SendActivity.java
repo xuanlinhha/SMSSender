@@ -6,7 +6,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
 import android.telephony.SmsManager;
 import android.view.View;
 import android.widget.Button;
@@ -28,6 +30,8 @@ public class SendActivity extends Activity {
     private static final String DELIVERED = "SMS_DELIVERED";
     private LinearLayout textContainer;
     private String message;
+    private String simName;
+    private int subId;
     private ListView listView;
     private Button startBtn;
     private List<Receiver> receivers;
@@ -42,6 +46,11 @@ public class SendActivity extends Activity {
         setContentView(R.layout.activity_send);
         startBtn = findViewById(R.id.startBtn);
         message = getIntent().getStringExtra(MainActivity.EXTRA_MESSAGE).trim();
+        subId = getIntent().getIntExtra("SUBID", -1);
+        // set sim label
+        simName = getIntent().getStringExtra("SIMNAME");
+        TextView msgLabel = findViewById(R.id.msgLabel);
+        msgLabel.setText(simName);
         TextView tv = new TextView(this);
         tv.setText(message);
         textContainer = findViewById(R.id.container);
@@ -62,6 +71,7 @@ public class SendActivity extends Activity {
         nextReceiver = 0;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP_MR1)
     public void startSending(View view) {
         if (!receivers.isEmpty()) {
             startBtn.setText("Sending ...");
@@ -71,6 +81,7 @@ public class SendActivity extends Activity {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP_MR1)
     private void sendNextSMS() {
         if (nextReceiver >= receivers.size()) {
             startBtn.setText("Start");
@@ -80,7 +91,8 @@ public class SendActivity extends Activity {
         while (nextReceiver < receivers.size()) {
             Receiver r = receivers.get(nextReceiver);
             if (r.getStatus() != Receiver.Status.Sent) {
-                SmsManager smsManager = SmsManager.getDefault();
+//                SmsManager smsManager = SmsManager.getDefault();
+                SmsManager smsManager = SmsManager.getSmsManagerForSubscriptionId(subId);
                 ArrayList<String> parts = smsManager.divideMessage(message);
                 totalParts = parts.size();
                 ArrayList<PendingIntent> deliveryIntents = new ArrayList<PendingIntent>();
@@ -103,6 +115,7 @@ public class SendActivity extends Activity {
 
     private void registerBroadCastReceivers() {
         registerReceiver(new BroadcastReceiver() {
+            @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP_MR1)
             @Override
             public void onReceive(Context arg0, Intent arg1) {
                 switch (getResultCode()) {
