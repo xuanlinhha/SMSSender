@@ -1,5 +1,6 @@
 package xuanlinhha.smssender;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -35,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
         phoneNumbersTxtEdit = (EditText) findViewById(R.id.phoneNumbersTxtEdit);
         messageTxtEdit = (EditText) findViewById(R.id.messageTxtEdit);
         LinearLayout ll = (LinearLayout) findViewById(R.id.buttonView);
-        SubscriptionManager subscriptionManager = SubscriptionManager.from(getApplicationContext());
+        SubscriptionManager subscriptionManager= (SubscriptionManager) getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
         List<SubscriptionInfo> subscriptionInfoList = subscriptionManager.getActiveSubscriptionInfoList();
         for (int i = 0; i < subscriptionInfoList.size(); i++) {
             final String simName = "SIM" + (i + 1);
