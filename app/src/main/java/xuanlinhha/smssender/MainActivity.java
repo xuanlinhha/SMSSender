@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
         Matcher m = chineseNo.matcher(tmp);
         while (m.find()) {
             String phone = m.group();
-            if (!phone.startsWith("+86")) {
+            if (!phone.startsWith("+")) {
                 phone = "+86" + phone;
             }
             nos.add(phone);
