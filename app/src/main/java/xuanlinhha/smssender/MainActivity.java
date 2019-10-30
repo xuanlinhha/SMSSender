@@ -7,9 +7,7 @@ import android.view.View;
 import android.widget.EditText;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void prepareSending(View view) {
-        Set<String> nos = new HashSet<>();
+        List<String> nos = new ArrayList<>();
         String tmp = phoneNumbersTxtEdit.getText().toString();
         Matcher m = chineseNo.matcher(tmp);
         while (m.find()) {
@@ -38,7 +36,10 @@ public class MainActivity extends AppCompatActivity {
             if (!phone.startsWith("+")) {
                 phone = "+86" + phone;
             }
-            nos.add(phone);
+
+            if (!nos.contains(phone)) {
+                nos.add(phone);
+            }
         }
         String message = messageTxtEdit.getText().toString();
         Intent intent = new Intent(this, SendActivity.class);

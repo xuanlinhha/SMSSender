@@ -16,12 +16,10 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import xuanlinhha.smssender.view.MyArrayAdapter;
 import xuanlinhha.smssender.view.Receiver;
-import xuanlinhha.smssender.view.ReceiverComparator;
 
 public class SendActivity extends Activity {
     private static final String SENT = "SMS_SENT";
@@ -54,7 +52,7 @@ public class SendActivity extends Activity {
             receiver.setStatus(Receiver.Status.Fresh);
             receivers.add(receiver);
         }
-        Collections.sort(receivers, new ReceiverComparator());
+//        Collections.sort(receivers, new ReceiverComparator());
         MyArrayAdapter myAdapter = new MyArrayAdapter(this,
                 R.layout.row_layout, receivers);
         listView = (ListView) findViewById(R.id.listView);
